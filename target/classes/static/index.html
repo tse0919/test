@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI 記帳助手 · Hackathon</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Noto Sans TC"', 'system-ui', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body class="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-slate-100 font-sans">
+
+  <div class="mx-auto max-w-3xl px-4 py-10 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <header class="mb-8 text-center">
+      <div class="mb-3 inline-flex items-center gap-2 rounded-full border border-indigo-400/30 bg-indigo-500/10 px-4 py-1 text-sm text-indigo-200">
+        <span class="h-2 w-2 animate-pulse rounded-full bg-emerald-400"></span>
+        Hackathon 全端記帳
+      </div>
+      <h1 class="text-3xl font-bold tracking-tight text-white sm:text-4xl">AI 智慧記帳</h1>
+      <p class="mt-2 text-slate-400">記一筆，AI 幫你分類並給出幽默省錢建議</p>
+    </header>
+
+    <!-- Form -->
+    <section class="mb-10 rounded-2xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-indigo-900/40 backdrop-blur-sm sm:p-8">
+      <h2 class="mb-5 flex items-center gap-2 text-lg font-semibold text-white">
+        <svg class="h-5 w-5 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        新增消費
+      </h2>
+
+      <form id="expense-form" class="space-y-4">
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label for="title" class="mb-1.5 block text-sm font-medium text-slate-300">消費品項</label>
+            <input
+              id="title"
+              name="title"
+              type="text"
+              required
+              placeholder="例如：珍珠奶茶、捷運月票"
+              class="w-full rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3 text-white placeholder-slate-500 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/30"
+            />
+          </div>
+          <div>
+            <label for="amount" class="mb-1.5 block text-sm font-medium text-slate-300">金額（元）</label>
+            <input
+              id="amount"
+              name="amount"
+              type="number"
+              min="1"
+              step="1"
+              required
+              placeholder="0"
+              class="w-full rounded-xl border border-white/10 bg-slate-900/60 px-4 py-3 text-white placeholder-slate-500 outline-none transition focus:border-indigo-400 focus:ring-2 focus:ring-indigo-400/30"
+            />
+          </div>
+        </div>
+
+        <button
+          id="submit-btn"
+          type="submit"
+          class="flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-500 px-6 py-3.5 text-base font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:from-indigo-400 hover:to-violet-400 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
+        >
+          <span id="submit-text">送出記帳</span>
+          <svg id="submit-spinner" class="hidden h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+        </button>
+      </form>
+
+      <p id="form-message" class="mt-4 hidden rounded-xl px-4 py-3 text-sm"></p>
+    </section>
+
+    <!-- Expense list -->
+    <section>
+      <div class="mb-5 flex items-center justify-between">
+        <h2 class="flex items-center gap-2 text-lg font-semibold text-white">
+          <svg class="h-5 w-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          消費紀錄
+        </h2>
+        <span id="expense-count" class="rounded-full bg-white/10 px-3 py-1 text-xs text-slate-300">0 筆</span>
+      </div>
+
+      <div id="loading" class="flex items-center justify-center gap-3 rounded-2xl border border-white/10 bg-white/5 py-16 text-slate-400">
+        <svg class="h-6 w-6 animate-spin text-indigo-400" viewBox="0 0 24 24" fill="none">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+        </svg>
+        載入中…
+      </div>
+
+      <div id="empty-state" class="hidden rounded-2xl border border-dashed border-white/15 bg-white/5 py-16 text-center">
+        <p class="text-slate-400">還沒有任何紀錄，先記一筆吧！</p>
+      </div>
+
+      <div id="expense-list" class="hidden space-y-4"></div>
+    </section>
+  </div>
+
+  <script>
+    const API_BASE = '/api/expenses';
+
+    const form = document.getElementById('expense-form');
+    const titleInput = document.getElementById('title');
+    const amountInput = document.getElementById('amount');
+    const submitBtn = document.getElementById('submit-btn');
+    const submitText = document.getElementById('submit-text');
+    const submitSpinner = document.getElementById('submit-spinner');
+    const formMessage = document.getElementById('form-message');
+    const loadingEl = document.getElementById('loading');
+    const emptyState = document.getElementById('empty-state');
+    const expenseList = document.getElementById('expense-list');
+    const expenseCount = document.getElementById('expense-count');
+
+    const categoryColors = {
+      '飲食': 'bg-orange-500/20 text-orange-200 ring-orange-400/30',
+      '交通': 'bg-blue-500/20 text-blue-200 ring-blue-400/30',
+      '娛樂': 'bg-pink-500/20 text-pink-200 ring-pink-400/30',
+      '購物': 'bg-purple-500/20 text-purple-200 ring-purple-400/30',
+      '生活': 'bg-emerald-500/20 text-emerald-200 ring-emerald-400/30',
+      '其他': 'bg-slate-500/20 text-slate-200 ring-slate-400/30',
+    };
+
+    function formatAmount(amount) {
+      return new Intl.NumberFormat('zh-TW', {
+        style: 'currency',
+        currency: 'TWD',
+        maximumFractionDigits: 0,
+      }).format(amount);
+    }
+
+    function showFormMessage(text, type) {
+      formMessage.textContent = text;
+      formMessage.classList.remove('hidden', 'bg-emerald-500/15', 'text-emerald-200', 'border-emerald-400/30', 'bg-red-500/15', 'text-red-200', 'border-red-400/30', 'border');
+      if (type === 'success') {
+        formMessage.classList.add('border', 'bg-emerald-500/15', 'text-emerald-200', 'border-emerald-400/30');
+      } else {
+        formMessage.classList.add('border', 'bg-red-500/15', 'text-red-200', 'border-red-400/30');
+      }
+    }
+
+    function hideFormMessage() {
+      formMessage.classList.add('hidden');
+    }
+
+    function setSubmitting(isSubmitting) {
+      submitBtn.disabled = isSubmitting;
+      submitSpinner.classList.toggle('hidden', !isSubmitting);
+      submitText.textContent = isSubmitting ? 'AI 分析中…' : '送出記帳';
+    }
+
+    function getCategoryClass(category) {
+      return categoryColors[category] || categoryColors['其他'];
+    }
+
+    function renderExpenseCard(expense) {
+      const category = expense.category || '其他';
+      const advice = expense.aiAdvice || expense.ai_advice || '（尚無 AI 建議）';
+      const badgeClass = getCategoryClass(category);
+
+      return `
+        <article class="group rounded-2xl border border-white/10 bg-white/5 p-5 shadow-lg transition hover:border-indigo-400/30 hover:bg-white/[0.07] sm:p-6">
+          <div class="flex flex-wrap items-start justify-between gap-3">
+            <div class="min-w-0 flex-1">
+              <h3 class="truncate text-lg font-semibold text-white">${escapeHtml(expense.title)}</h3>
+              <p class="mt-1 text-sm text-slate-400">#${expense.id ?? '—'}</p>
+            </div>
+            <div class="text-right">
+              <p class="text-xl font-bold text-white">${formatAmount(expense.amount)}</p>
+              <span class="mt-2 inline-flex items-center rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset ${badgeClass}">
+                ${escapeHtml(category)}
+              </span>
+            </div>
+          </div>
+
+          <div class="mt-4 rounded-xl border border-amber-400/30 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-rose-500/10 p-4">
+            <div class="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-amber-300">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+              </svg>
+              AI 省錢建議
+            </div>
+            <p class="text-sm leading-relaxed text-amber-100">${escapeHtml(advice)}</p>
+          </div>
+        </article>
+      `;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text ?? '';
+      return div.innerHTML;
+    }
+
+    async function loadExpenses() {
+      loadingEl.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+      expenseList.classList.add('hidden');
+
+      try {
+        const response = await fetch(API_BASE);
+        if (!response.ok) {
+          throw new Error(`載入失敗 (${response.status})`);
+        }
+
+        const expenses = await response.json();
+        loadingEl.classList.add('hidden');
+        expenseCount.textContent = `${expenses.length} 筆`;
+
+        if (expenses.length === 0) {
+          emptyState.classList.remove('hidden');
+          return;
+        }
+
+        expenseList.innerHTML = expenses
+          .slice()
+          .reverse()
+          .map(renderExpenseCard)
+          .join('');
+        expenseList.classList.remove('hidden');
+      } catch (error) {
+        loadingEl.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        emptyState.innerHTML = `<p class="text-red-300">無法載入資料：${escapeHtml(error.message)}</p><p class="mt-2 text-sm text-slate-500">請確認 Spring Boot 後端已啟動</p>`;
+      }
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      hideFormMessage();
+
+      const title = titleInput.value.trim();
+      const amount = Number(amountInput.value);
+
+      if (!title || !amount || amount <= 0) {
+        showFormMessage('請填寫有效的品項與金額', 'error');
+        return;
+      }
+
+      setSubmitting(true);
+
+      try {
+        const response = await fetch(API_BASE, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, amount }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`送出失敗 (${response.status})`);
+        }
+
+        titleInput.value = '';
+        amountInput.value = '';
+        showFormMessage('記帳成功！AI 已幫你分析完畢 ✨', 'success');
+        await loadExpenses();
+      } catch (error) {
+        showFormMessage(error.message, 'error');
+      } finally {
+        setSubmitting(false);
+      }
+    });
+
+    loadExpenses();
+  </script>
+</body>
+</html>

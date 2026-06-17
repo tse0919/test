@@ -1,0 +1,7 @@
+com\hackathon\expense\service\GeminiExpenseAiService.class
+com\hackathon\expense\entity\Expense.class
+com\hackathon\expense\repository\ExpenseRepository.class
+com\hackathon\expense\controller\ExpenseController.class
+com\hackathon\expense\dto\ExpenseRequest.class
+com\hackathon\expense\dto\AiAnalysisResult.class
+com\hackathon\expense\HackathonExpenseApplication.class
